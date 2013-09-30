@@ -18,7 +18,24 @@
                 // Restore application state here.
             }
             args.setPromise(WinJS.UI.processAll());
+
+            $("#createUser").click(signup);
+            $("#login").click(login);
+            $("#currentUser").click(showCurrentUser);
+            $("#logout").click(logout);
+            $("#saveObject").click(saveObject);
         }
+        //console.log(window.location.hostname.indexOf('dev'));
+        //console.log(Bodeefit.initConfig.environment);
+        //console.log(Bodeefit.isDev());
+        //console.log(Bodeefit.getConfig().parseAppId + "," + Bodeefit.getConfig().parseJSKey);
+
+
+        Bodeefit.init();//init Bodeefit app
+        //console.log(Bodeefit.User());
+
+       // console.log(Bodeefit.Models.User);
+
     };
 
     app.oncheckpoint = function (args) {
@@ -29,6 +46,107 @@
         // asynchronous operation before your application is suspended, call
         // args.setPromise().
     };
+
+    function signup() {
+        console.log("create User");
+        
+        var user = new Bodeefit.Models.User();
+        user.set(user.properties.USERNAME, $("#username_register").val());
+        user.set(user.properties.PASSWORD, $("#password_register").val());
+        user.set(user.properties.EMAIL, user.get(user.properties.USERNAME) + "@hotmail.com");
+        user.set(user.properties.FACEBOOKID, "123456");
+        user.set(user.properties.FULLNAME, "sam chen");
+        user.set(user.properties.SIGNUPSRC, "win8");
+        user.set(user.properties.TIMEZOME, "+8.0 bj");
+
+        user.signUp(null, {
+            success: function (user) {
+                // Hooray! Let them use the app now.
+                var msg = new Windows.UI.Popups.MessageDialog("sign up success!" + " user:" + user.get("username"));
+                msg.showAsync();
+
+                console.log("success");
+            },
+            error: function (user, error) {
+                // Show the error message somewhere and let the user try again.
+                var msg = new Windows.UI.Popups.MessageDialog("sign up failed!");
+                msg.showAsync();
+
+                console.log(error.message);
+                console.log("Error: " + error.code + " " + error.message);
+            }
+        });
+    }
+
+    function login() {
+        var username = $("#username_login").val();
+        var password = $("#password_login").val();
+
+        Parse.User.logIn(username, password, {
+            success: function (user) {
+                Bodeefit.activeModels.User = user;
+                //console.log(Bodeefit.activeModels.User.id);
+                var msg = new Windows.UI.Popups.MessageDialog("login success! username is " + user.get("username"));
+                msg.showAsync();
+            },
+            error: function (user, error) {
+                var msg = new Windows.UI.Popups.MessageDialog("login failed! username is " + user.get("username") + " error is " + error.message + " error code is " + error.code);
+                msg.showAsync();
+            }
+        });
+
+    }
+
+    function showCurrentUser() {
+        ;//var user = Parse.User.current();
+        var user = Bodeefit.activeModels.User;
+        var msg = new Windows.UI.Popups.MessageDialog("current user'name:" + ((user == null) ? "no user" : user.get("username")));
+        msg.showAsync();
+    }
+
+    function logout() {
+        Parse.User.logOut();
+        var user = Parse.User.current();
+        var msg = new Windows.UI.Popups.MessageDialog("xx2:" + user);
+        msg.showAsync();
+    }
+
+    function saveObject() {
+        var test = new Test();
+        console.log("1: " + Test.PRICE);
+        console.log("2: " + test.PRICE);
+        //test.set(test.MOVIE, "bianxingjingang");
+        //test.set(test.PRICE, "20.0");
+        test.set("name", "win8权威指南");
+        test.set("price", 48.1);
+        test.set("isdn", "sdgf-sdfgsd-sdfs-sdfg-tytrr");
+        test.save({}, {
+            success: function (test) {
+                console.log("success, " + test.id);
+            },
+            error: function (test, error) {
+                console.log(error.code + "," + error.message);
+                for (var property in error) {
+                    console.log(property);
+                    //s = s + "\n " + property + ": " + error[property];
+                }
+                // console.log("error," + "msg:" + error.error + ",code:" + error.code);
+            }
+        });
+        //test.set("xxx", "sdf");
+        //test.fetch({
+        //    success: function () {
+        //        console.log("fetch success");
+        //    },
+        //    error: function () {
+        //        console.log("fetch error");
+        //    },
+        //    change: function () {
+        //        console.log("fetch change");
+        //    }
+        //});
+
+    }
 
     app.start();
 })();
